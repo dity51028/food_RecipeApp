@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import recipeRoutes from './routes/recipe.js';
 import connectDb from './config/connectionDb.js';
 
@@ -15,6 +16,17 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 // middleware
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    console.log('Content-Type:', req.get('Content-Type'));
+    next();
+});
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 

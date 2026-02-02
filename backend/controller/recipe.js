@@ -1,4 +1,4 @@
-import Recipes from '../models/recipe';
+import Recipes from '../models/recipe.js';
 
 
 const getRecipes =async (req,res)=>{
@@ -12,24 +12,29 @@ const getRecipeById = async (req,res)=>{
 }
 
 const addRecipe = async (req,res)=>{
-    const {title, ingredients, instructions, time, coverImage} = req.body;
+    console.log('Request body:', req.body);
+    console.log('Content-Type:', req.get('Content-Type'));
+    
+    const {title, ingredients, instruction, time, coverImage} = req.body;
 
-    if(!title || !ingredients || !instructions ){
-        return res.status(400).json({message:'required fields cannot be empty'})
+    console.log('Extracted fields:', {title, ingredients, instruction, time, coverImage});
+
+    if(!title || !ingredients || !instruction ){
+        return res.status(400).json({message:'required fields cannot be empty', received: {title, ingredients, instruction}})
 
     }
-    const newRecipe = await Recipe.create({title, ingredients, instructions, time, coverImage})
+    const newRecipe = await Recipes.create({title, ingredients, instruction, time, coverImage})
     return res.json(newRecipe)
 
 }
 
 const updateRecipe = async (req,res)=>{
-    const {title, ingredients, instructions, time, coverImage} = req.body;
+    const {title, ingredients, instruction, time, coverImage} = req.body;
     const recipe = await Recipes.findById(req.params.id)
     try {
         if(recipe){
-            await recipe.findByIdAndUpdate(req.params.id, {title, ingredients, instructions, time, coverImage})
-            return res.json({title, ingredients, instructions, time, coverImage})
+            await recipe.findByIdAndUpdate(req.params.id, {title, ingredients, instruction, time, coverImage})
+            return res.json({title, ingredients, instruction, time, coverImage})
         }
     } catch (error) {
         return res.status(500).json({message:error.message})
@@ -37,8 +42,16 @@ const updateRecipe = async (req,res)=>{
     
 }
 
-const deleteRecipe = (req,res)=>{
-    res.json({message:'hello from recipe controller'})
+const deleteRecipe = async (req,res)=>{
+    try {
+        const recipe = await Recipes.findByIdAndDelete(req.params.id)
+        if(!recipe){
+            return res.status(404).json({message:'Recipe not found'})
+        }
+        return res.json({message:'Recipe deleted successfully', recipe})
+    } catch (error) {
+        return res.status(500).json({message:error.message})
+    }
 }
 
 export {getRecipes, getRecipeById, addRecipe, updateRecipe, deleteRecipe};
